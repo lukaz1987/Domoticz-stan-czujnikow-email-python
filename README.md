@@ -1,0 +1,1 @@
+# Domoticz-stan-czujnikow-email-python
