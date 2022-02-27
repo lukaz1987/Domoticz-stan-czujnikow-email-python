@@ -3,6 +3,7 @@ import json
 import urllib.request
 import smtplib
 import time
+import datetime
 
 adres = "http://ip.ip.ip.ip:port/json.htm?type=devices&rid="
 czujniki = {"Kuchnia (góra)": 9, 
@@ -28,7 +29,6 @@ czujniki = {"Kuchnia (góra)": 9,
             "Old_Home": 73
 }
 
-
 gmail_user = '@gmail.com'
 gmail_password = 'haslo'
 
@@ -44,33 +44,29 @@ while True:
         data = json.loads(json_text)
         data2 = data['result']
 
-
         for data3 in data2:
             print(data3['LastUpdate'])
-
 
         czas_serwera = data['ServerTime']
         czas_aktualizacji = data3['LastUpdate']
 
-
-        if czas_serwera[14:16] == czas_aktualizacji[14:16]:
-            print('Czas jest ten sam')
-        else:
-            print('Czas jest inny')
-
-
-        minuty_serwera = int(czas_serwera[14:16])
-        minuty_aktualizacji = int(czas_aktualizacji[14:16])
-        roznica_minut = minuty_serwera - minuty_aktualizacji
-
+        fmt = '%Y-%m-%d %H:%M:%S'
+        minuty_aktualizacji = datetime.datetime.strptime(czas_aktualizacji, fmt)
+        minuty_serwera = datetime.datetime.strptime(czas_serwera, fmt)
+        roznica = minuty_serwera - minuty_aktualizacji
+        roznica_minut = (roznica.days * 24 * 60) + (roznica.seconds/60)
+        roznica_minut2 = int(roznica_minut)
 
         tresc_subject = key + ": "
         subject = tresc_subject
         tresc_body = "Czas serwera: " + str(czas_serwera) + " a czas aktualizacji czujnika: " + str(czas_aktualizacji)
         body = tresc_body
+
+
         email_text = "From: %s\nTo: %s\nSubject: %s\n\n%s" % (sent_from, to, subject, body)
 
-        if roznica_minut >= 6 or roznica_minut <= -1:
+
+        if roznica_minut >= 6:
             print('Różnica minut jest więkasza o', roznica_minut,  'minut/e!!!')
             try:
                 server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
